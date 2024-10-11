@@ -1,6 +1,6 @@
 import { useMemo, Dispatch } from "react";
 import { categories } from "../data/categories";
-import { PencilSquareIcon } from "@heroicons/react/24/outline";
+import { PencilSquareIcon, XCircleIcon } from "@heroicons/react/24/outline";
 /**
  * Especificar el tipo de lo que le voy a pasar por props, en este caso el array de actividades para renderizarlo
  */
@@ -18,11 +18,27 @@ const ActivityList = ({ activities, dispatch }: ActivityListProps) => {
       categories.map((cat) => (cat.id === category ? cat.name : "")),
     [activities]
   );
+
+  /*Como activities pueden cambiar continuamente podemos usar useMemo en lugar del length directamente para aprovechar el cacheo de React para optimizar el rendimiento,
+  ya que el length se ejecuta en cada renderizado, lo que puede ser ligeramente menos eficiente si activities cambia frecuentemente.
+  */
+  const isEmptyActivities = useMemo(
+    () => activities.length === 0,
+    [activities]
+  );
   return (
     <>
       <h2 className="text-4xl font-bold text-slate-600 text-center">
         Comida y actividades
       </h2>
+
+      {
+        /* activities.length === 0  */
+        isEmptyActivities && (
+          <p className="text-center mt-5">No hay actividades aún</p>
+        )
+      }
+
       {activities.map((activity) => (
         <div
           key={activity.id}
@@ -48,6 +64,18 @@ const ActivityList = ({ activities, dispatch }: ActivityListProps) => {
                 onClick={() =>
                   dispatch({
                     type: "set-activeId",
+                    payload: { id: activity.id },
+                  })
+                }
+              />
+            </button>
+
+            <button>
+              <XCircleIcon
+                className="h-8 w-8 text-red-500 hover:text-red-700"
+                onClick={() =>
+                  dispatch({
+                    type: "delete-activity",
                     payload: { id: activity.id },
                   })
                 }

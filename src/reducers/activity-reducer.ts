@@ -72,7 +72,8 @@ Mejores prácticas
 //Tipo de la actividad
 export type ActivityActions =
   | { type: "save-activity"; payload: { newActivity: Activity } }
-  | { type: "set-activeId"; payload: { id: Activity["id"] } };
+  | { type: "set-activeId"; payload: { id: Activity["id"] } }
+  | { type: "delete-activity"; payload: { id: Activity["id"] } };
 
 //Estado (state) que contendrá todas las actividades que vayamos creando.
 export type ActivityState = {
@@ -80,9 +81,15 @@ export type ActivityState = {
   activeId: Activity["id"];
 };
 
+//Revisar si tenemos actividades guardadas en localstorage para usarlas de estado inicial por si refrescan la pagina
+const localStorageActivities = (): Activity[] => {
+  const activities = localStorage.getItem("activities");
+  return activities ? JSON.parse(activities) : [];
+};
+
 //Estado inicial del reducer inicia como array vacio
 export const initialState: ActivityState = {
-  activities: [],
+  activities: localStorageActivities(),
   activeId: "",
 };
 
@@ -109,7 +116,7 @@ export const activityReducer = (
       //Actualizar el state añadiendo la nueva actividad a las que ya hubiera creadas
       ...state,
       activities: updatedActivities,
-      activeId: "" //Reseteamos activeId para que cada vez que haya un guardado o editado se vacie id activo
+      activeId: "", //Reseteamos activeId para que cada vez que haya un guardado o editado se vacie id activo
     };
   }
 
@@ -119,4 +126,15 @@ export const activityReducer = (
       activeId: action.payload.id,
     };
   }
+
+  if (action.type === "delete-activity") {
+    return {
+      ...state,
+      activities: state.activities.filter(
+        (activity) => activity.id !== action.payload.id
+      ),
+    };
+  }
+
+  return state;
 };
