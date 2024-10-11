@@ -1,13 +1,14 @@
-import { useState, ChangeEvent, FormEvent, Dispatch } from "react";
+import { useState, ChangeEvent, FormEvent, Dispatch, useEffect } from "react";
 import { v4 as uuidv4 } from "uuid";
 
 import { categories } from "../data/categories";
 import { Activity } from "../types";
-import { ActivityActions } from "../reducers/activity-reducer";
+import { ActivityActions, ActivityState } from "../reducers/activity-reducer";
 
 //Especificamos de que tipo seran las acciones del dispatch que me estoy pasando por props  (mi tipo personalizado)
 type FormProps = {
   dispatch: Dispatch<ActivityActions>;
+  state: ActivityState;
 };
 
 const initialState: Activity = {
@@ -17,9 +18,20 @@ const initialState: Activity = {
   calories: 0,
 };
 
-const Form = ({ dispatch }: FormProps) => {
+const Form = ({ dispatch, state }: FormProps) => {
   //COMO LOS 3 STATE DEPENDEN UNOS DE OTROS LOS PONEMOS EN UN OBJETO CON SU TIPO PERSONALIZADO
   const [activity, setActivity] = useState<Activity>(initialState);
+
+  useEffect(() => {
+    if (state.activeId) {
+      console.log("Ya hay algo en activeId", state.activeId);
+      //Buscamos la activity seleccionada para editar
+      const selectedActivity = state.activities.filter(
+        (stateActivity) => stateActivity.id === state.activeId
+      )[0];
+      setActivity(selectedActivity);
+    }
+  }, [state.activeId]);
 
   const handleChange = (
     e: ChangeEvent<HTMLInputElement> | ChangeEvent<HTMLSelectElement> //Estos son eventos genericos del tipo que se lanza el evento

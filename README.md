@@ -11,3 +11,4 @@ Proyecto para practicar Typescript y Tailwind:
 - Tailwind
 - Formularios
 - uuid: para generar id unicos para cada actividad
+- Hero Icons

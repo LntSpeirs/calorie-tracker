@@ -69,20 +69,21 @@ Mejores prácticas
 
  */
 
-//Tipo de la actividad, al enviar el formulario con el boton de guardar se ejecutará la Action de tipo "save-activity" con el payload que te paso
-export type ActivityActions = {
-  type: "save-activity";
-  payload: { newActivity: Activity };
-};
+//Tipo de la actividad
+export type ActivityActions =
+  | { type: "save-activity"; payload: { newActivity: Activity } }
+  | { type: "set-activeId"; payload: { id: Activity["id"] } };
 
 //Estado (state) que contendrá todas las actividades que vayamos creando.
-type ActivityState = {
+export type ActivityState = {
   activities: Activity[];
+  activeId: Activity["id"];
 };
 
 //Estado inicial del reducer inicia como array vacio
 export const initialState: ActivityState = {
   activities: [],
+  activeId: "",
 };
 
 //Reducer que conecta el state inicial y la Action
@@ -90,17 +91,32 @@ export const activityReducer = (
   state: ActivityState = initialState, //State de tipo ActivityState con valor iniciarl de initialState
   action: ActivityActions //*Las acciones nos ayudan a describir que es lo que esta pasando y que información es la que se va a modificar en que parte de nuestro state */
 ) => {
-  if (action.type === "save-activity") { //Si la accion que le llega al reducer es de tipo save-activity haz esto
-    /* console.log("Tipo", action.type)
-    console.log("Actividad nueva", action.payload.newActivity) */
+  if (action.type === "save-activity") {
+    //Si la accion que le llega al reducer es de tipo save-activity haz esto
+    let updatedActivities: Activity[] = [];
 
-    //Aqui puede ir toda la logica para evitar actividades duplicadas, etc...
+    if (state.activeId) {
+      //Si hay un activeId significa que estoy editando
+      updatedActivities = state.activities.map((activity) =>
+        activity.id === state.activeId ? action.payload.newActivity : activity
+      );
+    } else {
+      //Si no hay activeId guardo una nueva
+      updatedActivities = [...state.activities, action.payload.newActivity];
+    }
 
-    return { //Actualizar el state añadiendo la nueva actividad a las que ya hubiera creadas
+    return {
+      //Actualizar el state añadiendo la nueva actividad a las que ya hubiera creadas
       ...state,
-      activities: [...state.activities, action.payload.newActivity],
+      activities: updatedActivities,
+      activeId: "" //Reseteamos activeId para que cada vez que haya un guardado o editado se vacie id activo
     };
-  } else {
-    throw new Error(`Accion no definida type: ${action.type}`);
+  }
+
+  if (action.type === "set-activeId") {
+    return {
+      ...state,
+      activeId: action.payload.id,
+    };
   }
 };
